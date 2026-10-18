@@ -1,185 +1,147 @@
+# Jawab Interview: Adaptive, Resume-Grounded Interview Practice
 
-# AI Interview Candidate System
+An AI interview practice system that reads your resume, asks technical questions about **your own** projects and skills, and adjusts the difficulty of each question to the quality of your previous answer. At the end it gives you a report with your strengths, gaps and an improvement plan.
 
-An AI-powered adaptive interview and candidate assessment system that generates resume-based technical questions, evaluates candidate answers, and adjusts interview difficulty according to performance.
+It runs fully on your own computer with a small open model (Gemma 3, 4B) served by Ollama. No paid API is needed.
 
-## Overview
+> **Status:** working prototype. Manual testing and one expert review are done. A student pilot is still pending, so no accuracy claims are made.
 
-Traditional interview preparation often relies on generic questions that may not reflect a candidate's actual skills or project experience.
+## Why this project
 
-This project aims to make interview practice more personalized by combining resume-based retrieval, large language models, structured question generation, and adaptive difficulty selection.
+Most interview practice uses generic question lists, but a real interviewer usually asks about what is written on your resume. A small language model used on its own also repeats topics, asks shallow questions and sometimes assumes things the resume does not say. This project controls the interview structure in code and uses the model for wording, evaluation and extraction.
 
-The system is designed as an interview practice and assessment tool, helping candidates identify technical knowledge gaps and improve their interview performance.
+## Features
 
-## Key Features
+- Resume upload (PDF or DOCX), parsed and indexed with FAISS (RAG)
+- Automatic extraction of projects, skills and internships
+- Fixed interview structure with technical questions built from core concepts of your resume keywords
+- Answer scoring from 1 to 10 with strengths, missing points and feedback
+- Adaptive difficulty: weak answer gives an easier next question, strong answer gives a harder one
+- Final assessment report (overall score is computed in code)
+- Chat-style web interface with progress bar and difficulty indicator
+- Full mode (10 questions) and quick mode (5 questions)
 
-- **Resume-Based Question Generation:** Generates interview questions using information extracted from a candidate's resume.
-- **Retrieval-Augmented Generation (RAG):** Retrieves relevant resume content to provide context for question generation.
-- **Semantic Search:** Uses embeddings and FAISS for similarity-based retrieval of relevant text chunks.
-- **Adaptive Interviewing:** Adjusts question difficulty based on candidate performance.
-- **Answer Evaluation:** Analyzes candidate answers using AI-based evaluation.
-- **Structured Interview Flow:** Organizes question generation and answer evaluation into separate modules.
-- **Final Assessment:** Includes a module for analyzing interview performance.
+## How it works
 
-## System Workflow
+```
+Resume (PDF/DOCX)
+   -> parse -> split into chunks -> embeddings -> FAISS index
+   -> topic extraction (projects, skills, internships)
 
-1. Upload a candidate's resume.
-2. Extract and split resume text into smaller chunks.
-3. Generate embeddings and store them in a FAISS index.
-4. Retrieve relevant resume information for a selected topic.
-5. Generate an interview question based on the retrieved context.
-6. Evaluate the candidate's answer.
-7. Select the next question difficulty based on performance.
-8. Generate a final assessment of the interview.
+Interview loop (LangGraph state machine)
+   ask question -> wait for answer -> evaluate (score 1-10)
+        -> router -> easy / normal / hard question -> ...
+   -> final analysis report
+```
 
-## Technology Stack
+### Interview structure (full mode, 10 questions)
 
-| Component | Technology |
+| Question | Type | Source |
+|---|---|---|
+| 1 | Introduction | Fixed |
+| 2 | Project | A project from the resume |
+| 3, 5, 7 | Keyword concept | A core concept of a resume skill (for example OOP or multithreading for Java) |
+| 4, 6, 8, 9 | Open technical | Resume skills, often short problem scenarios |
+| 10 | Internship or experience | Role, learning and one challenge |
+
+The introduction answer is not scored, so the interview always starts at normal difficulty.
+
+## Tech stack
+
+| Part | Technology |
 |---|---|
-| Programming Language | Python |
-| Backend API | FastAPI |
-| Language Model Runtime | Ollama |
-| Language Model | Gemma 3 4B |
-| Retrieval Approach | Retrieval-Augmented Generation (RAG) |
-| Vector Search | FAISS |
-| Embeddings | Ollama-based embeddings |
-| Interview Orchestration | LangGraph |
-| Frontend | HTML, CSS, JavaScript |
+| Backend | Python, FastAPI |
+| Orchestration | LangChain, LangGraph |
+| Retrieval | FAISS, embeddings through Ollama |
+| Language model | Gemma 3 (4B) served by Ollama |
+| Frontend | HTML, CSS, JavaScript (single page) |
 
-## Project Structure
+## Project structure
 
-```text
-AI_Interview_Candidate_System/
-│
-├── adative_interview/
-│   ├── candidate_answere.py
-│   ├── evaluate_answere.py
-│   ├── final_analysis.py
-│   ├── generate_easy_question.py
-│   ├── generate_normal_question.py
-│   ├── generate_hard_question.py
-│   ├── generate_question.py
-│   ├── graph.py
-│   ├── question_engine_all.py
-│   ├── router.py
-│   └── state.py
-│
-├── backend/
-│   ├── embedding.py
-│   ├── faiss_search.py
-│   ├── generation.py
-│   ├── parser.py
-│   ├── text_splitting.py
-│   ├── topic.py
-│   └── uploads.py
-│
-├── frontend/
-│   └── index.html
-│
-├── .gitignore
-└── README.md
+```
+backend/              FastAPI app, resume parsing, chunking, embeddings, FAISS search, topic extraction
+adative_interview/    LangGraph graph, state, router, question generators, evaluation, final analysis
+frontend/             Single-page chat interface (index.html)
+docs/                 Uploaded resumes (created locally, not committed)
+faiss_index/          Saved index and chunks (created locally, not committed)
 ```
 
-## Getting Started
+## Getting started
 
-### Prerequisites
+### 1. Requirements
 
-- Python 3.10 or a compatible version for the installed dependencies
-- Git
-- Ollama installed and running
-- Required Python packages
-- The language model and embedding model used by the application
+- Python 3.11
+- [Ollama](https://ollama.com/) installed and running
+- About 8 GB RAM is enough for the 4B model
 
-### 1. Clone the Repository
+### 2. Install
 
 ```bash
-git clone https://github.com/PRathammadan1/AI_Interview_Candidate_System.git
-cd AI_Interview_Candidate_System
-```
+git clone https://github.com/<your-username>/<repo-name>.git
+cd <repo-name>
 
-### 2. Create a Virtual Environment
-
-```bash
 python -m venv venv
-```
+venv\Scripts\activate          # Windows
+# source venv/bin/activate     # macOS / Linux
 
-Activate it on Windows:
-
-```bash
-venv\Scripts\activate
-```
-
-### 3. Install Dependencies
-
-Install the required packages listed in `requirements.txt`.
-
-```bash
 pip install -r requirements.txt
+mkdir docs faiss_index
 ```
 
-### 4. Set Up the Language Model
-
-Make sure Ollama is installed and running. Download the model required by the application if it is not already available.
-
-For example, if the project uses Gemma 3 4B:
+### 3. Pull the models
 
 ```bash
 ollama pull gemma3:4b
+ollama pull <embedding-model>   # the embedding model used in backend/embedding.py
 ```
 
-Check the model name in the project configuration before running the application.
-
-### 5. Run the Backend
+### 4. Run
 
 ```bash
-uvicorn backend.uploads:app --reload
+uvicorn backend.uploads:app
 ```
 
-Open the FastAPI documentation:
+Open http://localhost:8000 in your browser, upload a resume, enter your name and start the interview.
 
-http://127.0.0.1:8000/docs
+Run without `--reload`. The upload step writes files inside the project folder, and auto-reload can restart the server in the middle of an interview.
 
-### 6. Run the Frontend
+## API
 
-Open a separate terminal:
+| Method | Endpoint | Purpose |
+|---|---|---|
+| GET | `/` | Serves the web interface |
+| POST | `/upload` | Uploads a resume, builds the FAISS index |
+| POST | `/interview/start` | Starts an interview, returns the first question |
+| POST | `/interview/answer` | Submits an answer, returns the next question, score, feedback and (at the end) the final report |
 
-```bash
-python -m http.server 5500
-```
+## Known limitations
 
-Then open:
+- Interview state is kept in memory, so it is lost when the server restarts.
+- All users share one resume index, so only one interview can run at a time.
+- Text answers only. No voice input, login or integrity monitoring yet.
+- A 4B model can still produce weak or inaccurate questions and scores. Scores are indicative, not exact.
+- The question bank covers a few skills. Skills outside the bank use model-generated questions, which are unverified.
+- This is a **practice tool**. It must not be used to make hiring decisions, or to get answers during a live interview.
 
-http://127.0.0.1:5500/frontend/
+## Roadmap
 
-If the frontend or backend uses a different entry point, update the command according to the project configuration.
+- [ ] Student pilot study (completion rate, question relevance, score reliability)
+- [ ] Per-user resume index and persistent storage
+- [ ] Login and user accounts
+- [ ] Job-description-based interview mode and practice mode
+- [ ] Voice input
+- [ ] Wider verified question bank
+- [ ] Comparison of the 4B model with larger models for scoring
 
-## Current Scope
+## Privacy
 
-The current implementation focuses on resume processing, semantic retrieval, interview question generation, answer evaluation, and adaptive interview logic.
-
-The project is under development. Additional capabilities, integrations, and evaluation improvements may be introduced as development progresses.
-
-## Limitations
-
-- AI-generated questions and scores may not always be accurate.
-- Assessment quality depends on the resume content, retrieved context, and model behavior.
-- Further testing is needed to evaluate question quality, repetition, and scoring consistency.
-- The system is intended to support interview practice and should not be treated as a definitive hiring decision-maker.
-
-## Future Improvements
-
-- Job description and candidate skill matching
-- Improved evidence-based scoring and feedback
-- Better control over question relevance and repetition
-- Candidate skill-gap analysis and personalized practice
-- Improved user interface and assessment reports
-
-## Disclaimer
-
-This project is intended for educational, development, and interview-practice purposes. AI-generated assessments should be reviewed critically and should not replace human judgment.
+A resume contains personal data. Use sample resumes while testing. The `docs/` and `faiss_index/` folders are ignored by Git and must never be committed. Delete uploaded files when you are done.
 
 ## Author
 
-**Pratham Madan**
+**Pratham Madan**, B.Tech (Computer Science and Engineering), Galgotias University
+[LinkedIn / email: add here]
 
-GitHub: [@PRathammadan1](https://github.com/PRathammadan1)
+## License
+
+[Choose a license, for example MIT, and add a LICENSE file]
