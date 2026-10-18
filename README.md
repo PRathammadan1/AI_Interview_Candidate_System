@@ -140,8 +140,3 @@ A resume contains personal data. Use sample resumes while testing. The `docs/` a
 ## Author
 
 **Pratham Madan**, B.Tech (Computer Science and Engineering), Galgotias University
-[LinkedIn / email: add here]
-
-## License
-
-[Choose a license, for example MIT, and add a LICENSE file]
