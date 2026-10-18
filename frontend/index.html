@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Adaptive Interview</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700;800&family=DM+Sans:wght@400;500;600&display=swap">
+<style>
+:root{--bg:#f4f2ff;--panel:#fff;--ink:#1c1a38;--muted:#6a678a;--line:#e1deF5;--accent:#4f46e5;--accent2:#eef0ff;--easy:#16a34a;--normal:#d97706;--hard:#dc2626;--bad:#c62828;
+--head:"Bricolage Grotesque",system-ui,sans-serif;--body:"DM Sans",system-ui,sans-serif}
+@media (prefers-color-scheme:dark){:root{--bg:#12112a;--panel:#1b1a3a;--ink:#ecebff;--muted:#a09ec6;--line:#2e2c57;--accent:#8b86ff;--accent2:#25235a;--easy:#4ade80;--normal:#fbbf24;--hard:#f87171;--bad:#ff8a80}}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 var(--body)}
+.hidden{display:none!important}
+button{font:600 15px var(--body);cursor:pointer;border:0;border-radius:10px;padding:12px 20px;background:var(--accent);color:#fff}
+button:disabled{opacity:.5;cursor:wait}
+button.ghost{background:transparent;color:var(--accent);border:1.5px solid var(--accent)}
+.thanks{margin-top:22px;text-align:center;background:var(--accent2);border-radius:14px;padding:22px 20px}
+.thanks h3{font:700 20px var(--head);margin:0 0 4px}
+.thanks p{margin:0;color:var(--muted)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+input,textarea{font:inherit;color:inherit;background:var(--bg);border:1.5px solid var(--line);border-radius:10px;padding:11px 14px;width:100%}
+label{display:block;font-weight:600;font-size:14px;margin:16px 0 6px}
+.err{color:var(--bad);font-size:14px;margin-top:12px;min-height:1.2em}
+.spin{display:inline-block;width:13px;height:13px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;vertical-align:-2px;margin-right:8px;animation:s .8s linear infinite}
+@keyframes s{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.spin{animation:none}}
+
+/* setup */
+#setup{min-height:100%;display:grid;grid-template-columns:1.1fr 1fr}
+.hero{padding:64px 56px;display:flex;flex-direction:column;justify-content:center;background:var(--accent);color:#fff}
+.hero h1{font:800 clamp(34px,4.6vw,56px)/1.05 var(--head);margin:0 0 18px;letter-spacing:-.02em}
+.hero p{font-size:18px;max-width:420px;opacity:.9;margin:0 0 30px}
+.levels{display:flex;gap:10px;flex-wrap:wrap}
+.levels span{border:1.5px solid rgba(255,255,255,.55);border-radius:99px;padding:5px 16px;font-weight:600;font-size:14px}
+.formwrap{padding:48px 40px;display:flex;align-items:center;justify-content:center}
+.form{width:100%;max-width:400px}
+.form h2{font:700 24px var(--head);margin:0 0 4px}
+.form .hint{color:var(--muted);margin:0 0 6px;font-size:14px}
+.drop{border:1.5px dashed var(--accent);background:var(--accent2);border-radius:10px;padding:14px}
+.status{color:var(--muted);font-size:14px;margin-top:10px}
+.form button{width:100%;margin-top:22px}
+details{margin-top:16px;font-size:14px;color:var(--muted)}
+
+/* interview */
+#interview{height:100%;display:flex;flex-direction:column;max-width:760px;margin:0 auto}
+.top{padding:16px 20px 12px;border-bottom:1px solid var(--line);background:var(--bg)}
+.toprow{display:flex;justify-content:space-between;align-items:center;font-weight:600;margin-bottom:10px}
+.bar{display:flex;gap:6px}
+.bar i{flex:1;height:6px;border-radius:9px;background:var(--line)}
+.bar i.done{background:var(--accent)}
+.dlevel{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--muted)}
+.dlevel b{text-transform:capitalize;color:var(--ink)}
+.dots{display:flex;gap:3px}
+.dots u{width:16px;height:7px;border-radius:3px;background:var(--line);text-decoration:none}
+.chat{flex:1;overflow-y:auto;padding:22px 20px;display:flex;flex-direction:column;gap:14px}
+.msg{max-width:84%;padding:13px 16px;border-radius:16px;white-space:pre-wrap;overflow-wrap:anywhere}
+.bot{background:var(--panel);border:1px solid var(--line);border-top-left-radius:4px;align-self:flex-start}
+.bot .ackline{color:var(--muted);font-size:14px;margin-bottom:6px}
+.bot .q{font:600 18px/1.4 var(--head)}
+.me{background:var(--accent);color:#fff;border-top-right-radius:4px;align-self:flex-end}
+.chip{align-self:flex-end;margin-top:-6px;font-size:13px;color:var(--muted);max-width:84%;text-align:right}
+.chip b{color:var(--ink)}
+.typing{align-self:flex-start;color:var(--muted);font-size:14px}
+.composer{padding:12px 20px 18px;border-top:1px solid var(--line);background:var(--bg);display:flex;gap:10px;align-items:flex-end}
+.composer textarea{min-height:52px;max-height:160px;resize:none}
+.composer button{height:52px}
+
+/* result */
+#result{max-width:760px;margin:0 auto;padding:44px 20px 80px}
+#result h1{font:800 34px var(--head);margin:0 0 20px;letter-spacing:-.01em}
+.summary{display:flex;gap:28px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:24px;margin-bottom:18px}
+.ring{--p:0;width:132px;height:132px;border-radius:50%;background:conic-gradient(var(--accent) calc(var(--p)*1%),var(--line) 0);display:grid;place-items:center;flex:none}
+.ring div{width:104px;height:104px;border-radius:50%;background:var(--panel);display:grid;place-items:center;font:800 34px var(--head)}
+.ring small{font:500 14px var(--body);color:var(--muted)}
+.summary p{margin:0;color:var(--muted)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.box{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px 20px}
+.box.full{grid-column:1/-1}
+.box h3{font:700 17px var(--head);margin:0 0 8px}
+.box.good{border-left:4px solid var(--easy)}
+.box.warn{border-left:4px solid var(--normal)}
+.box ul{margin:0;padding-left:18px}
+.box li{margin:5px 0}
+.tags{display:flex;flex-wrap:wrap;gap:8px}
+.tags span{background:var(--accent2);border-radius:99px;padding:3px 12px;font-size:14px}
+#result button{margin-top:24px}
+
+@media (max-width:760px){
+  #setup{grid-template-columns:1fr}
+  .hero{padding:36px 24px}
+  .formwrap{padding:28px 20px}
+  .grid{grid-template-columns:1fr}
+  .summary{flex-direction:column;align-items:flex-start}
+}
+</style>
+</head>
+<body>
+
+<section id="setup">
+  <div class="hero">
+    <h1>Interview practice that adapts to you</h1>
+    <p>Upload your resume and answer five technical questions. Do well and they get harder. Struggle and they ease off.</p>
+    <div class="levels"><span>Easy</span><span>Normal</span><span>Hard</span></div>
+  </div>
+  <div class="formwrap">
+    <div class="form">
+      <h2>Start your interview</h2>
+      <p class="hint">Questions come from your own projects and skills.</p>
+      <label for="resume">Resume</label>
+      <div class="drop"><input type="file" id="resume" accept=".pdf,.doc,.docx,.txt"></div>
+      <label for="name">Your name</label>
+      <input type="text" id="name" autocomplete="name">
+      <button id="startBtn">Upload and start</button>
+      <div class="status" id="setupStatus"></div>
+      <div class="err" id="setupErr"></div>
+      <details><summary>Backend settings</summary>
+        <label for="api">Backend URL</label>
+        <input type="text" id="api" value="http://localhost:8000">
+      </details>
+    </div>
+  </div>
+</section>
+
+<section id="interview" class="hidden">
+  <div class="top">
+    <div class="toprow"><span id="qNum">Question 1 of 5</span>
+      <span class="dlevel">Difficulty <b id="diff">normal</b><span class="dots" id="dots"><u></u><u></u><u></u></span></span>
+    </div>
+    <div class="bar" id="bar"></div>
+  </div>
+  <div class="chat" id="chat" aria-live="polite"></div>
+  <div class="composer">
+    <textarea id="answer" rows="1" placeholder="Type your answer. Ctrl+Enter to send."></textarea>
+    <button id="submitBtn">Send</button>
+  </div>
+  <div class="err" id="ansErr" style="padding:0 20px 10px"></div>
+</section>
+
+<section id="result" class="hidden">
+  <h1>Interview complete</h1>
+  <div class="summary">
+    <div class="ring" id="ring"><div><span id="overall">0</span></div></div>
+    <div><h2 style="margin:0 0 6px;font:700 22px var(--head)">Overall score <small>out of 10</small></h2>
+    <p>Average of your five technical answers, including how much deeper the questions went.</p></div>
+  </div>
+  <div class="grid" id="report"></div>
+  <div class="thanks">
+  <h3>Thank you for giving your precious time</h3>
+  <p>We hope this practice helps you in your next interview. All the best!</p>
+  </div>
+  <button class="ghost" onclick="location.reload()">Start a new interview</button>
+</section>
+
+<script>
+const $ = id => document.getElementById(id);
+$("api").value = location.protocol.startsWith("http") ? location.origin : "http://localhost:8000";
+const TOTAL = 5;
+let API = "", interviewId = "", qNo = 1;
+
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function show(id){ ["setup","interview","result"].forEach(s => $(s).classList.toggle("hidden", s !== id)); window.scrollTo(0,0); }
+function busy(btn, on, text){ btn.disabled = on; btn.innerHTML = on ? '<span class="spin"></span>' + text : btn.dataset.label; }
+["startBtn","submitBtn"].forEach(i => $(i).dataset.label = $(i).textContent);
+
+async function post(path, options){
+   options.headers = Object.assign({"ngrok-skip-browser-warning": "1"}, options.headers || {});
+  const res = await fetch(API + path, options);
+  if(!res.ok){
+    let d = ""; try { d = (await res.json()).detail || ""; } catch(e){}
+    throw new Error("Server error " + res.status + (d ? ": " + JSON.stringify(d) : ""));
+  }
+  return res.json();
+}
+
+function drawProgress(diff){
+  $("qNum").textContent = "Question " + Math.min(qNo, TOTAL) + " of " + TOTAL;
+  $("bar").innerHTML = Array.from({length:TOTAL}, (_, i) => '<i class="' + (i < qNo - 1 ? "done" : "") + '"></i>').join("");
+  const level = {easy:1, normal:2, hard:3}[diff] || 2;
+  const color = {easy:"var(--easy)", normal:"var(--normal)", hard:"var(--hard)"}[diff] || "var(--normal)";
+  $("diff").textContent = diff;
+  [...$("dots").children].forEach((u, i) => u.style.background = i < level ? color : "var(--line)");
+}
+
+function scrollChat(){ const c = $("chat"); c.scrollTop = c.scrollHeight; }
+function addBot(ack, question){
+  const d = document.createElement("div");
+  d.className = "msg bot";
+  d.innerHTML = (ack ? '<div class="ackline">' + esc(ack) + '</div>' : "") + '<div class="q">' + esc(question) + '</div>';
+  $("chat").appendChild(d); scrollChat();
+}
+function addMe(text){
+  const d = document.createElement("div"); d.className = "msg me"; d.textContent = text;
+  $("chat").appendChild(d); scrollChat();
+}
+function addChip(score, feedback){
+  const d = document.createElement("div"); d.className = "chip";
+  d.innerHTML = "<b>" + esc(score) + "/10</b> " + esc(feedback || "");
+  $("chat").appendChild(d); scrollChat();
+}
+
+$("startBtn").onclick = async () => {
+  const file = $("resume").files[0], name = $("name").value.trim();
+  API = $("api").value.trim().replace(/\/$/, "");
+  $("setupErr").textContent = "";
+  if(!file){ $("setupErr").textContent = "Choose your resume file first."; return; }
+  if(!name){ $("setupErr").textContent = "Enter your name."; return; }
+  const btn = $("startBtn");
+  try{
+    busy(btn, true, "Reading resume...");
+    $("setupStatus").textContent = "Indexing your resume. This can take a minute.";
+    const fd = new FormData(); fd.append("file", file);
+    await post("/upload", {method:"POST", body: fd});
+    $("setupStatus").textContent = "Preparing your first question...";
+    const d = await post("/interview/start", {method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({name})});
+    interviewId = d.interview_id; qNo = 1;
+    $("chat").innerHTML = "";
+    show("interview"); drawProgress("normal");
+    addBot(d.message, d.question);
+    $("answer").focus();
+  }catch(e){
+    $("setupErr").textContent = e.message + ". Check the backend URL, and that the server and Ollama are running.";
+  }finally{ busy(btn, false); $("setupStatus").textContent = ""; }
+};
+
+async function send(){
+  const answer = $("answer").value.trim();
+  $("ansErr").textContent = "";
+  if(!answer) return;
+  const btn = $("submitBtn");
+  addMe(answer); $("answer").value = "";
+  const t = document.createElement("div"); t.className = "typing"; t.textContent = "Interviewer is thinking...";
+  $("chat").appendChild(t); scrollChat();
+  try{
+    busy(btn, true, "Sending");
+    const d = await post("/interview/answer", {method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({interview_id: interviewId, answer})});
+    t.remove();
+    if(qNo > 1) addChip(d.score, d.feedback);
+    if(d.finished){ showResult(d.final_analysis || {}); return; }
+    qNo++;
+    drawProgress(d.difficulty || "normal");
+    addBot(d.message, d.question);
+  }catch(e){
+    t.remove();
+    $("answer").value = answer;
+    $("chat").lastElementChild.remove();
+    $("ansErr").textContent = e.message + ". Your answer is back in the box, send it again.";
+  }finally{ busy(btn, false); $("answer").focus(); }
+}
+$("submitBtn").onclick = send;
+$("answer").addEventListener("keydown", e => { if(e.key === "Enter" && (e.ctrlKey || e.metaKey)) send(); });
+$("answer").addEventListener("input", e => { e.target.style.height = "auto"; e.target.style.height = Math.min(e.target.scrollHeight, 160) + "px"; });
+
+function listBox(title, items, cls){
+  if(!items || !items.length) return "";
+  return '<div class="box ' + (cls || "") + '"><h3>' + title + '</h3><ul>' + items.map(i => "<li>" + esc(i) + "</li>").join("") + "</ul></div>";
+}
+function showResult(f){
+  const score = Number(f.overall_score) || 0;
+  $("overall").textContent = score;
+  $("ring").style.setProperty("--p", score * 10);
+  let html = listBox("Strengths", f.strengths, "good") + listBox("Weaknesses", f.weaknesses, "warn");
+  if(f.skills_demonstrated && f.skills_demonstrated.length)
+    html += '<div class="box full"><h3>Skills you demonstrated</h3><div class="tags">' + f.skills_demonstrated.map(s => "<span>" + esc(s) + "</span>").join("") + "</div></div>";
+  html += listBox("Skill gaps", f.skill_gaps) + listBox("How to improve", f.improvement_plan);
+  $("report").innerHTML = html;
+  show("result");
+}
+</script>
+</body>
+</html>
